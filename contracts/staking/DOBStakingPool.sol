@@ -14,7 +14,6 @@ import "../interfaces/IStakingPoolRewarder.sol";
 import "../interfaces/IDOBStakingPool.sol";
 import "../interfaces/IOption.sol";
 import "../interfaces/ITokenKeeper.sol";
-import "hardhat/console.sol";
 
 /**
  * @title DOBStakingPool
@@ -450,7 +449,7 @@ contract DOBStakingPool is OwnableUpgradeable, PausableUpgradeable, ReentrancyGu
      */
     function setExtendLockDays(uint256 _days) external onlyOwner {
         require(_days > 0, "DOBStakingPool: zero days");
-        console.log(extendLockDays);
+
         uint256 oldDays = extendLockDays;
         extendLockDays = _days;
 

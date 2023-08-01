@@ -1,10 +1,27 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity ^0.8.4;
 
 /**
  * @title TransferHelper library
  * @author DeOrderBook
- * @custom:license Copyright (c) DeOrderBook, 2023 — All Rights Reserved
+ * @custom:license Adapted from Uniswap's V3 TransferHelper.sol
+ *
+ *                Copyright (c) 2023 DeOrderBook
+ *
+ *           This program is free software; you can redistribute it and/or
+ *           modify it under the terms of the GNU General Public License
+ *           as published by the Free Software Foundation; either version 2
+ *           of the License, or (at your option) any later version.
+ *
+ *           This program is distributed in the hope that it will be useful,
+ *           but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *           GNU General Public License for more details.
+ *
+ *           You should have received a copy of the GNU General Public License
+ *           along with this program; if not, write to the Free Software
+ *           Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
  * @notice Helper methods for interacting with ERC20 tokens and sending ETH that do not consistently return true/false
  * @dev This library provides safe wrappers around ERC20 token operations and ETH transfers, checking for success and throwing appropriate errors if needed.
  */
