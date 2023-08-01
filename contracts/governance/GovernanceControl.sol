@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../interfaces/IGovernance.sol";
 
 /**
- * @title GovernanceControl contact.
+ * @title GovernanceControl contract.
  *
  * @dev Contract module which provides a basic access control mechanism, where
  * contract methods can be restricted to execution to only by governance executor
