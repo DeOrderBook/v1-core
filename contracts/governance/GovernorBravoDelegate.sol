@@ -14,10 +14,10 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
     uint256 public constant MAX_PROPOSAL_THRESHOLD = 100000000e18; //100,000,000 DOB
 
     /// The minimum setable voting period
-    uint256 public constant MIN_VOTING_PERIOD = 1; // About 24 hours
+    uint256 public constant MIN_VOTING_PERIOD = 5760; // Based on block.About 24 hours.
 
     /// The max setable voting period
-    uint256 public constant MAX_VOTING_PERIOD = 80640; // About 2 weeks
+    uint256 public constant MAX_VOTING_PERIOD = 80640; // Based on block. About 2 weeks
 
     /// The min setable voting delay
     uint256 public constant MIN_VOTING_DELAY = 0;
@@ -29,7 +29,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
     uint256 public constant MAX_VOTES_TYPES = 10;
 
     /// The max setable voting delay
-    uint256 public constant MAX_VOTING_DELAY = 40320; // About 1 week
+    uint256 public constant MAX_VOTING_DELAY = 40320; //Based on block. About 1 week
 
     /// The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
     uint256 public constant QUORUM_VOTES = 300000000e18; // 300,000,000 = 3% of dob
@@ -43,6 +43,8 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
 
     /// The EIP-712 typehash for the ballot struct used by the contract
     bytes32 public constant BALLOT_TYPEHASH = keccak256("Ballot(uint256 proposalId,uint8 support)");
+
+    bool private initiated = false;
 
     /**
      * @notice Used to initialize the contract during delegator contructor
@@ -278,6 +280,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
      */
     function initiate() external {
         require(msg.sender == admin, "GovernorBravo: admin only");
+        initiated = true;
         timelock.acceptAdmin();
     }
 
@@ -368,6 +371,8 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV2, GovernorBravoE
         string memory description,
         string[] memory votesTypes
     ) public returns (uint256) {
+        require(initiated, "GovernorBravo: does not initiated");
+
         // Allow addresses above proposal threshold and whitelisted addresses to propose
         require(
             dob.getPriorVotes(msg.sender, block.number - 1) >= proposalThreshold || isWhitelisted(msg.sender),

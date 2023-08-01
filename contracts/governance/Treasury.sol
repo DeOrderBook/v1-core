@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./GovernanceControl.sol";
 
 /**
- * @title Treasury contact.
+ * @title Treasury contract.
  *
  * @dev Treasury contract allows to hold, receive and use ERC20 funds.
  */
