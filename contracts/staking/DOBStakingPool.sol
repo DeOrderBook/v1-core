@@ -957,7 +957,9 @@ contract DOBStakingPool is OwnableUpgradeable, PausableUpgradeable, ReentrancyGu
      * @dev This function can only be called when the contract is paused. It updates the pool's total staking amount and transfers the user's staking amount back to the user.
      */
     function emergencyUnstake() external whenPaused {
+        require(userDatas[msg.sender].totalStakingAmount > 0, "DOBStaking: total staking amount is zero");
         uint256 amount = userDatas[msg.sender].totalStakingAmount;
+        userDatas[msg.sender].totalStakingAmount = 0;
         poolData.stakingAmount = poolData.stakingAmount.sub(amount);
 
         SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(DOB), msg.sender, amount);
