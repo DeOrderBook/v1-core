@@ -36,6 +36,12 @@ contract HODLToken is ERC20Wrapper, Ownable {
      * @dev This address is set via the `setIsCheckNFT` function and is used in the `nftCheckSuccess` function.
      */
     ERC721 public NFTAddress;
+    /**
+     * @notice The conversion rate used to determine the number of HODL tokens minted in exchange for the underlying token.
+     * @dev This rate is applied when depositing the underlying token to mint HODL tokens, essentially defining the ratio between the underlying token and HODL token.
+     * It's specified as a power of 10, meaning that a conversion rate of N would lead to a conversion ratio of 10^N.
+     */
+    uint256 public conversionRate;
 
     /**
      * @notice Constructs the HODLToken contract.
@@ -43,14 +49,17 @@ contract HODLToken is ERC20Wrapper, Ownable {
      * @param underlyingTokenAddress The address of the ERC20 token that the HODL token wraps.
      * @param distributionsAddress The address of the Distributions contract.
      * @param symbol_ The symbol of the HODL token.
+     * @param _conversionRate The conversion rate of the HODL token.
      */
     constructor(
         address underlyingTokenAddress,
         address distributionsAddress,
-        string memory symbol_
+        string memory symbol_,
+        uint256 _conversionRate
     ) ERC20("HODL Token", symbol_) ERC20Wrapper(IERC20(underlyingTokenAddress)) {
         require(underlyingTokenAddress != address(0), "HODLToken: zero address");
         distributions = Distributions(distributionsAddress);
+        conversionRate = _conversionRate;
     }
 
     /**
@@ -97,10 +106,23 @@ contract HODLToken is ERC20Wrapper, Ownable {
      * @return Returns true upon success.
      */
     function deposit(uint256 amount) external returns (bool) {
-        require(msg.sender != address(0), "HODLToken: zero address");
+        depositFor(msg.sender, amount);
+        return true;
+    }
+
+    /**
+     * @notice Allows an account to deposit a specified amount of the underlying token on behalf of another address and mints them an equivalent amount of HODL tokens.
+     * @dev The underlying token is transferred from the sender's address to the contract, and HODL tokens are minted to the specified account. The minted amount is adjusted by the conversion rate.
+     * @param account The address for whom the deposit is made.
+     * @param amount The amount of the underlying token to deposit.
+     * @return Returns true upon success.
+     */
+    function depositFor(address account, uint256 amount) public override returns (bool) {
         require(amount > 0, "HODLToken: zero amount");
         require(nftCheckSuccess(), "HODLToken: you do not have NFT");
-        depositFor(msg.sender, amount);
+        SafeERC20.safeTransferFrom(underlying, _msgSender(), address(this), amount);
+        uint256 adjustAmount = amount.mul(10**conversionRate);
+        _mint(account, adjustAmount);
         return true;
     }
 
@@ -126,14 +148,18 @@ contract HODLToken is ERC20Wrapper, Ownable {
      */
     function withdrawTo(address account, uint256 amount) public override returns (bool) {
         uint256 feeAmount = amount.mul(distributions.hodlWithdrawFeeRatio()).div(10000);
-        uint256 burnAmount = amount.sub(feeAmount);
-        _burn(_msgSender(), burnAmount);
+        uint256 adjustedAmount = amount.sub(feeAmount).div(10**conversionRate);
 
+        uint256 remainder = amount.sub(feeAmount).sub(adjustedAmount.mul(10**conversionRate));
+        uint256 adjustedFee = feeAmount.add(remainder);
+
+        uint256 burnAmount = amount.sub(adjustedFee);
+        _burn(_msgSender(), burnAmount);
         for (uint8 i = 0; i < distributions.hodlWithdrawFeeDistributionLength(); i++) {
             (uint8 percentage, address to) = distributions.hodlWithdrawFeeDistribution(i);
-            SafeERC20.safeTransferFrom(IERC20(address(this)), _msgSender(), to, feeAmount.mul(percentage).div(100));
+            SafeERC20.safeTransferFrom(IERC20(address(this)), _msgSender(), to, adjustedFee.mul(percentage).div(100));
         }
-        SafeERC20.safeTransfer(underlying, account, amount.sub(feeAmount));
+        SafeERC20.safeTransfer(underlying, account, adjustedAmount);
         return true;
     }
 }
